@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>JoustyBet Status</title>
+    </head>
+    <body>
+        <h1>{{ game_state }}</h1>
+        <h2>Last winner: {{ last_winner }}</h2>
+        <table border="1">
+            <tr><td>Name</td><td>Score</td><td>Streak</td><td>Current Bet</td></tr>
+        {% for player in players %}
+            <tr><td>{{ player.name }}</td><td>{{ player.score }}</td><td>{{ player.streak }}</td><td>{{ player.current_bet }}</td></tr>
+        {% endfor %}
+        </table>
+    </body>
+
+</html>
