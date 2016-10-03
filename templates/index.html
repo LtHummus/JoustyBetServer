@@ -13,10 +13,12 @@
         <script type="text/javascript">
 
             var bet = undefined;
+            var loggedIn = false;
 
             function doStateInit(bets_open) {
                 $('#signup').css('display', 'none');
                 $('#logout_form').css('display', 'inline');
+                loggedIn = true;
                 if (bets_open) {
                     openBets();
                 } else {
@@ -25,6 +27,8 @@
             }
 
             function openBets() {
+                if (!loggedIn)
+                    return;
                 $('#betting_buttons').css('display', 'block');
                 $('#subtext').text("Betting is open!");
             }
@@ -115,6 +119,7 @@
 
                 $("#logout_button").click(function(event) {
                     socket.emit('logout', {});
+                    loggedIn = false;
                     localStorage.setItem('joust_session', null);
                     location.reload(/* forceReload = */ true);
                 });
