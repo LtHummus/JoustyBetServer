@@ -114,6 +114,8 @@ def signup(payload):
     username = payload['username']
     if profanity.contains_profanity(username):
         emit('join_fail', {'error': 'Your username has bad words in it'})
+    elif len(username) > 32:
+        emit('join_fail', {'error': 'Your username is too long'})
     elif game.player_exists(username):
         emit('join_fail', {'error': 'Username %s already exists' % username})
     else:
