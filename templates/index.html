@@ -16,6 +16,7 @@
 
             function doStateInit(bets_open) {
                 $('#signup').css('display', 'none');
+                $('#logout_form').css('display', 'inline');
                 if (bets_open) {
                     openBets();
                 } else {
@@ -111,6 +112,12 @@
                     var color = event.target.innerText;
                     postVote(color);
                 });
+
+                $("#logout_button").click(function(event) {
+                    socket.emit('logout', {});
+                    localStorage.setItem('joust_session', null);
+                    location.reload(/* forceReload = */ true);
+                });
             });
         </script>
 
@@ -166,6 +173,10 @@
                 display: none;
             }
 
+            #logout_form {
+                display: none;
+            }
+
 
         </style>
     </head>
@@ -182,6 +193,9 @@
             <input type="submit" />
         </form>
 
+        <div id="logout_form">
+            <button type="button" class="btn btn-danger" id="logout_button">Logout</button>
+        </div>
 
         <div id="betting_buttons">
             <button type="button" class="btn btn-primary btn-lg btn-blue">BLUE</button>

@@ -104,6 +104,11 @@ def attempt_session_resume(payload):
         emit('resume_failed', {'status': 'could not resume'})
 
 
+@socketio.on('logout', namespace='/jousty')
+def logout(payload):
+    logging.info('attempting to sign up user with id %s', request.sid)
+    user_id = request.sid
+    del game.players[user_id]
 
 
 @socketio.on('client_init', namespace='/jousty')
