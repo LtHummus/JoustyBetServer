@@ -170,6 +170,8 @@ def kill_player():
 
 @app.route('/post-game-event', methods=['POST'])
 def post_game_event():
+    if not authenticated():
+        return "NOPE"
     decode_event(request.data)
     return "OK"
 

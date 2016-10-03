@@ -9,10 +9,12 @@ import requests
 LAST_READ = ""
 SECONDS_BETWEEN_CHECKS = 2
 POST_URL = "http://localhost:5000/post-game-event"
+SHARED_SECRET = "CHANGEME"
 
 
 def post_contents(contents):
-    r = requests.post(POST_URL, data=contents)
+    headers = {'Authentication': SHARED_SECRET}
+    r = requests.post(POST_URL, data=contents, headers=headers)
     logging.info("Posted some data to the website: %s", contents)
 
 
