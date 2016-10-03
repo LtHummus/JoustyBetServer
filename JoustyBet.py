@@ -52,6 +52,8 @@ app.config['SECRET_KEY'] = 'secret!' # don't tell anyone (or you'll be just anot
 socketio = SocketIO(app, async_mode=async_mode, logger=True, cookie='session-resume')
 thread = None
 
+SHARED_SECRET = "CHANGEME"
+
 game = BettingBoard()
 
 def handle_game_begin():
@@ -133,6 +135,14 @@ def vote(payload):
     else:
         emit('bet_fail', {'error': 'Something went wrong'})
 
+
+def authenticated():
+    try:
+        return request.headers['Authentication'] == SHARED_SECRET
+    except:
+        return False
+
+
 @app.route('/')
 def hello_world():
     return render_template('index.html')
@@ -140,16 +150,32 @@ def hello_world():
 
 @app.route('/kill-player', methods=['POST'])
 def kill_player():
-    decoded = json.loads(request.data.decode('UTF-8'))
-    name = decoded['name']
-    del game.players[name]
-    return "killed"
+    if not authenticated():
+        return "Nope"
+    raw_data = request.data.decode('UTF-8')
+    logging.info(raw_data)
+    decoded = json.loads(raw_data)
+    logging.info("Attempting to admin kill user %s", decoded)
+    for x in game.players:
+        if game.players[x].name == decoded['name']:
+            del game.players[x]
+            return "killed"
+    return "not found"
 
 
 @app.route('/post-game-event', methods=['POST'])
 def post_game_event():
     decode_event(request.data)
     return "OK"
+
+
+@app.route('/dump-data')
+def dump_data():
+    data = {}
+    for x in game.players:
+        player_obj = game.players[x]
+        data[player_obj.name] = player_obj.as_serializable_object()
+    return json.dumps(data)
 
 
 @app.route('/scoreboard')
@@ -166,4 +192,4 @@ def scoreboard():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    socketio.run(app, host='0.0.0.0')
+    socketio.run(app, host='0.0.0.0', debug=True)
