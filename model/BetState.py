@@ -12,8 +12,27 @@ class BettingBoard:
     def close_bets(self):
         self.bets_open = False
 
-    def player_exists(self, name):
+    def player_session_exists(self, name):
         return name in self.players
+
+    def delete_player(self, name):
+        logging.info("Attempting to admin kill user %s", name)
+        for x in self.players:
+            if self.players[x].name == name:
+                del self.players[x]
+                return True
+
+        return False
+
+    def zero_player_out(self, name):
+        logging.info("Attempting to zero out user %s", name)
+        for x in self.players:
+            if self.players[x].name == name:
+                self.players[x].score = 0
+                self.players[x].streak = 0
+                return True
+
+        return False
 
     def add_player(self, player):
         self.players[player.session_id] = player
@@ -27,14 +46,12 @@ class BettingBoard:
         except:
             return False
 
-
     def update_player_session(self, old_id, new_id):
         player = self.players[old_id]
         del self.players[old_id]
         self.players[new_id] = player
         player.session_id = new_id
         logging.info('updated %s to new session %s', old_id, new_id)
-
 
     def deal_with_winner(self, winner):
         self.last_winner = winner

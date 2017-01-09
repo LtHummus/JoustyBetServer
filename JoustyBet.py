@@ -95,7 +95,7 @@ def socket_connect():
 def attempt_session_resume(payload):
     old_session_id = payload['session_id']
     logging.info("Attempting to resume session for old id %s", old_session_id)
-    if game.player_exists(old_session_id):
+    if game.player_session_exists(old_session_id):
         game.update_player_session(old_session_id, request.sid)
         player = game.players[request.sid]
         emit('resume_success', {'player': player.as_serializable_object(),
@@ -123,7 +123,7 @@ def signup(payload):
         emit('join_fail', {'error': 'Your username has bad words in it'})
     elif len(username) > 32:
         emit('join_fail', {'error': 'Your username is too long'})
-    elif game.player_exists(username):
+    elif game.player_session_exists(username):
         emit('join_fail', {'error': 'Username %s already exists' % username})
     else:
         p = Player(username, request.sid)
@@ -197,6 +197,37 @@ def scoreboard():
     return response
 
 
+@app.route('/admin_action', methods=['POST'])
+def admin_action():
+    if request.form['auth_key'] != SHARED_SECRET:
+        return "no", 403
+
+    if request.form['action'] == 'delete':
+        if game.delete_player(request.form['username']):
+            return "Deleted"
+        else:
+            return "Not found"
+    elif request.form['action'] == 'zero':
+        if game.zero_player_out(request.form['username']):
+            return "Zeroed"
+        else:
+            return "Not Found"
+    else:
+        return "Unknown admin function"
+
+
+@app.route('/admin')
+def admin():
+    if request.args['key'] != SHARED_SECRET:
+        return "Nope", 403
+    players = [v.as_serializable_object() for k, v in game.players.items()]
+    if game.bets_open:
+        game_state = "Accepting bets"
+    else:
+        game_state = "Not accepting bets"
+    response = make_response(render_template('admin.html', players=players, game_state=game_state, last_winner=game.last_winner, shared_secret=SHARED_SECRET))
+    return response
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='0.0.0.0')

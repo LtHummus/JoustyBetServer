@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+    <head>
+        <title>JoustyBet Admin</title>
+    </head>
+    <body>
+        <h1>{{ game_state }}</h1>
+        <table border="1">
+            <tr><td>Name</td><td>Score</td><td>Streak</td><td>Current Bet</td><td>Admin Functions</td></tr>
+            {% for player in players %}
+                <tr>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.score }}</td>
+                    <td>{{ player.streak }}</td>
+                    <td>{{ player.current_bet }}</td>
+                    <td><form action="/admin_action" method="POST">
+                        <input type="hidden" name="username" value="{{ player.name }}" />
+                        <input type="hidden" name="auth_key" value="{{ shared_secret }}" />
+                        <input type="submit" name="action" value="delete" />
+                        <input type="submit" name="action" value="zero" />
+                    </form> </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
