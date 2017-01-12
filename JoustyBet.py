@@ -55,14 +55,36 @@ thread = None
 SHARED_SECRET = "CHANGEME"
 
 game = BettingBoard()
+locked = False
+
+
+def handle_lock():
+    global locked
+    locked = True
+    game.close_bets()
+    socketio.emit('close_bet', {}, namespace='/jousty', broadcast=True)
+
+
+def handle_unlock():
+    global locked
+    locked = False
+    game.open_bets()
+    socketio.emit('open_bet', {'previous_winner': None}, namespace='/jousty', broadcast=True)
+
 
 def handle_game_begin():
+    if locked:
+        logging.info("Game is locked.  Not starting shit")
+        return
     logging.info("Closing bets!")
     game.close_bets()
     socketio.emit('close_bet', {}, namespace='/jousty', broadcast=True)
 
 
 def handle_winner(data):
+    if locked:
+        logging.info("Game is locked.  Not starting shit")
+        return
     winner = data['winner']
     logging.info("Got winner: %s", winner)
     game.deal_with_winner(winner)
@@ -212,6 +234,12 @@ def admin_action():
             return "Zeroed"
         else:
             return "Not Found"
+    elif request.form['action'] == 'Lock Server':
+        handle_lock()
+        return "locked"
+    elif request.form['action'] == 'Unlock Server':
+        handle_unlock()
+        return "unlocked"
     else:
         return "Unknown admin function"
 
@@ -225,7 +253,7 @@ def admin():
         game_state = "Accepting bets"
     else:
         game_state = "Not accepting bets"
-    response = make_response(render_template('admin.html', players=players, game_state=game_state, last_winner=game.last_winner, shared_secret=SHARED_SECRET))
+    response = make_response(render_template('admin.html', players=players, game_state=game_state, last_winner=game.last_winner, shared_secret=SHARED_SECRET, locked=locked))
     return response
 
 if __name__ == '__main__':

@@ -2,16 +2,22 @@
 <html>
     <head>
         <title>JoustyBet Status</title>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     </head>
     <body>
-        <h1>{{ game_state }}</h1>
-        <h2>Last winner: {{ last_winner }}</h2>
-        <table border="1">
-            <tr><td>Name</td><td>Score</td><td>Streak</td><td>Current Bet</td></tr>
-        {% for player in players %}
-            <tr><td>{{ player.name }}</td><td>{{ player.score }}</td><td>{{ player.streak }}</td><td>{{ player.current_bet }}</td></tr>
-        {% endfor %}
-        </table>
+        <div class="container">
+            <h1>Go to http://www.example.com to guess the outcome of games!</h1>
+            <table border="1" class="table table-condensed">
+                <tr><th>Name</th><th>Score</th><th>Streak</th><th>Current Bet</th></tr>
+            {% for player in players %}
+                <tr><td>{{ player.name }}</td><td>{{ player.score }}</td><td>{{ player.streak }}</td><td>{{ player.current_bet }}</td></tr>
+            {% endfor %}
+            </table>
+        </div>
     </body>
 
 </html>

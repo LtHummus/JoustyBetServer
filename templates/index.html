@@ -83,7 +83,9 @@
                     openBets();
                     if (bet != undefined) {
                         var previous_winner = payload['previous_winner'];
-                        if (previous_winner === bet) {
+                        if (previous_winner === undefined) {
+                            $('#subtext').text('Bets are opening back up')
+                        } else if (previous_winner === bet) {
                             $('#subtext').text('You won! Good job!');
                         } else {
                             $('#subtext').text('You lost!  You bet on ' + bet + ' but ' + previous_winner + ' won');
@@ -186,33 +188,73 @@
         </style>
     </head>
     <body>
-        <h1 id="header">Welcome to JoustyBet!</h1>
-        <h2 id="subtext"></h2>
+        <div class="container">
+            <h1 id="header">Welcome to JoustyBet!</h1>
+            <h2 id="subtext"></h2>
 
-        <form action="#" id="signup">
-            <div id="username-field-div">
-                <label for="username_field" class="control-label">Username:</label>
-                <input class="frontend-control" type="text" name="username" id="username_field"/>
-                <span class="username-error" id="signup-error-text"></span>
+            <form action="#" id="signup">
+                <div id="username-field-div">
+                    <label for="username_field" class="control-label">Username:</label>
+                    <input class="frontend-control" type="text" name="username" id="username_field"/>
+                    <span class="username-error" id="signup-error-text"></span>
+                </div>
+                <input type="submit" />
+            </form>
+
+            <div id="logout_form">
+                <button type="button" class="btn btn-danger" id="logout_button">Logout</button>
             </div>
-            <input type="submit" />
-        </form>
 
-        <div id="logout_form">
-            <button type="button" class="btn btn-danger" id="logout_button">Logout</button>
+            <div id="betting_buttons">
+                <button type="button" class="btn btn-primary btn-lg btn-blue">BLUE</button>
+                <button type="button" class="btn btn-primary btn-lg btn-yellow">YELLOW</button>
+                <button type="button" class="btn btn-primary btn-lg btn-green">GREEN</button>
+                <button type="button" class="btn btn-primary btn-lg btn-purple">PURPLE</button>
+                <button type="button" class="btn btn-primary btn-lg btn-orange">ORANGE</button>
+                <button type="button" class="btn btn-primary btn-lg btn-pink">PINK</button>
+                <button type="button" class="btn btn-primary btn-lg btn-cyan">CYAN</button>
+                <button type="button" class="btn btn-primary btn-lg btn-magenta">MAGENTA</button>
+            </div>
+
+            <div id="faq">
+                <h3>Frequently Asked Questions</h3>
+
+                <p>
+                    <b>What is this game called?</b> <br />
+                    Johann Sebastian Joust
+                </p>
+                <p>
+                    <b>Did you make this game?</b> <br />
+                    No I did not.  I just like this game a lot.  I did however make this website and modify the game to allow
+                    this betting to work.
+                </p>
+                <p>
+                    <b>How can I find out where/where/when you set up to play?</b><br />
+                    You can follow me on Twitter: <a href="https://twitter.com/LtHummus" target="_blank">@LtHummus</a>.  I will tweet when and where I set up.
+                </p>
+                <p>
+                    <b>Are you being paid to run this?</b><br />
+                    Nope!  I do this just for fun.  I am a just a normal, regular PAX attendee that happens to bring a bunch of crap with me.
+                </p>
+                <p>
+                    <b>Is this game available for me to buy?</b><br />
+                    Yes.  It is available for <a target="_blank" href="http://store.steampowered.com/app/277850/">Linux, Mac,</a> <a target="_blank" href="https://store.playstation.com/#!/en-us/search/q=sportsfriends">PS3, and PS4</a> as part of a bundle called Sportsfriends.
+                    (Note the PS4 version only supports up to 4 players, but the others support up to 7).
+                </p>
+                <p>
+                    <b>What other equipment do you have to run this?</b><br />
+                    <ul>
+                        <li>Early 2011 MacBook Pro</li>
+                        <li>8 PS Move Controllers (+ some for backups)</li>
+                        <li><a href="https://www.ionaudio.com/products/details/Block-Rocker-iPA76A" target="_blank">ION Block Rocker iPA76A Speaker</a></li>
+                    </ul>
+                </p>
+                <p>
+                    <b>How do you do the secret rainbow taunt?</b><br />
+                    Not telling.
+                </p>
+            </div>
         </div>
-
-        <div id="betting_buttons">
-            <button type="button" class="btn btn-primary btn-lg btn-blue">BLUE</button>
-            <button type="button" class="btn btn-primary btn-lg btn-yellow">YELLOW</button>
-            <button type="button" class="btn btn-primary btn-lg btn-green">GREEN</button>
-            <button type="button" class="btn btn-primary btn-lg btn-purple">PURPLE</button>
-            <button type="button" class="btn btn-primary btn-lg btn-orange">ORANGE</button>
-            <button type="button" class="btn btn-primary btn-lg btn-pink">PINK</button>
-            <button type="button" class="btn btn-primary btn-lg btn-cyan">CYAN</button>
-            <button type="button" class="btn btn-primary btn-lg btn-magenta">MAGENTA</button>
-        </div>
-
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
         <!-- Include all compiled plugins (below), or include individual files as needed -->
