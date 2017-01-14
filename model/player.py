@@ -9,6 +9,7 @@ class Player:
         self.current_bet = None
         self.last_seen = None # TODO: deal with this bullshit later
         self.session_id = session_id
+        self.number_bets = 0
 
     def increment_score(self):
         self.score += 1
@@ -22,6 +23,8 @@ class Player:
         self.last_seen = None # TODO: still dealing with it
 
     def check_winner(self, winner):
+        self.number_bets += 1
+
         if winner == self.current_bet:
             self.score += 1
             self.streak += 1
@@ -33,12 +36,17 @@ class Player:
 
     def as_serializable_object(self):
         return {
+            'id': self.session_id,
             'name': self.name,
             'score': self.score,
             'streak': self.streak,
             'current_bet': self.current_bet,
-            'session_id': self.session_id
+            'session_id': self.session_id,
+            'number_bets': self.number_bets
         }
+
+    def as_hexicube_string(self):
+        return "player %s %s %s %s %s %s" % (self.session_id, self.score, self.streak, self.current_bet, self.number_bets, self.name)
 
     def debug_dump(self):
         return """

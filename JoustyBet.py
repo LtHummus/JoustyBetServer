@@ -1,6 +1,8 @@
 from flask import Flask, request, render_template, make_response
 from flask_socketio import SocketIO, emit
 
+from flask_sockets import Sockets
+
 import json
 import logging
 from profanity import profanity
@@ -92,6 +94,7 @@ def handle_winner(data):
     socketio.emit('open_bet', {'previous_winner': winner}, namespace='/jousty', broadcast=True)
 
 
+
 def decode_event(data):
     logging.info("Received event.  Raw JSON: %s", data)
     decoded = json.loads(data.decode('UTF-8'))
@@ -101,6 +104,8 @@ def decode_event(data):
         handle_game_begin()
     elif event_type == 'winner':
         handle_winner(decoded)
+
+    update_scoreboard()
 
 # END INCOMING HORSESHIT
 
@@ -151,6 +156,7 @@ def signup(payload):
         p = Player(username, request.sid)
         game.add_player(p)
         emit('join_ok', {'status': 'ok', 'state': game.bets_open})
+    update_scoreboard()
 
 
 @socketio.on('vote', namespace='/jousty')
@@ -159,8 +165,19 @@ def vote(payload):
     success = game.set_bet_on_player(request.sid, payload['guess'])
     if success:
         emit('bet_ok', {'guess': payload['guess']})
+        update_scoreboard()
     else:
         emit('bet_fail', {'error': 'Something went wrong'})
+
+
+@socketio.on('connect', namespace='/board')
+def board_connect():
+    logging.info("Board attempted connection")
+    update_scoreboard()
+
+
+def update_scoreboard():
+    socketio.emit('data_update', game.as_hexicube_string(), namespace='/board', broadcast=True)
 
 
 def authenticated():
@@ -168,6 +185,13 @@ def authenticated():
         return request.headers['Authentication'] == SHARED_SECRET
     except:
         return False
+
+
+@app.route('/scoreboard-data')
+def live():
+    import json
+
+    return json.dumps(game.as_serializable_object())
 
 
 @app.route('/')
@@ -226,19 +250,23 @@ def admin_action():
 
     if request.form['action'] == 'delete':
         if game.delete_player(request.form['username']):
+            update_scoreboard()
             return "Deleted"
         else:
             return "Not found"
     elif request.form['action'] == 'zero':
         if game.zero_player_out(request.form['username']):
+            update_scoreboard()
             return "Zeroed"
         else:
             return "Not Found"
     elif request.form['action'] == 'Lock Server':
         handle_lock()
+        update_scoreboard()
         return "locked"
     elif request.form['action'] == 'Unlock Server':
         handle_unlock()
+        update_scoreboard()
         return "unlocked"
     else:
         return "Unknown admin function"
@@ -248,6 +276,7 @@ def admin_action():
 def admin():
     if request.args['key'] != SHARED_SECRET:
         return "Nope", 403
+    update_scoreboard()
     players = [v.as_serializable_object() for k, v in game.players.items()]
     if game.bets_open:
         game_state = "Accepting bets"

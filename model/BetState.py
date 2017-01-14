@@ -64,3 +64,13 @@ class BettingBoard:
         #       of inactive
         pass
 
+    def as_serializable_object(self):
+        return {'bets_open': self.bets_open, 'last_winner': self.last_winner, 'players': [self.players[x].as_serializable_object() for x in self.players]}
+
+    def as_hexicube_string(self):
+        lines = [
+            "bets_open {}".format(self.bets_open),
+            "last_winner {}".format(self.last_winner)
+        ]
+
+        return "\n".join(lines + [self.players[x].as_hexicube_string() for x in self.players])
