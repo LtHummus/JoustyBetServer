@@ -5,7 +5,9 @@ from flask_sockets import Sockets
 
 import json
 import logging
+import time
 from profanity import profanity
+from threading import Thread
 
 from model.BetState import BettingBoard
 from model.JoustConstants import PLAYER_COLORS
@@ -35,7 +37,7 @@ if async_mode is None:
     if async_mode is None:
         async_mode = 'threading'
 
-    print('async_mode is ' + async_mode)
+    logging.info('async_mode is ' + async_mode)
 
 
 # monkey patching is necessary because this application uses a background
@@ -59,6 +61,16 @@ SHARED_SECRET = "CHANGEME"
 game = BettingBoard()
 locked = False
 
+INACTIVITY_CHECK_TIME = 5 * 60  # 5 minutes in seconds
+
+
+def background_cleanup():
+    logging.info("Background cleanup thread started")
+    while True:
+        time.sleep(INACTIVITY_CHECK_TIME)
+        logging.info("Checking for inactive players")
+        game.remove_garbage()
+        update_scoreboard()
 
 def handle_lock():
     global locked
@@ -114,7 +126,7 @@ def decode_event(data):
 
 @socketio.on('connect', namespace='/jousty')
 def socket_connect():
-    print('client connect')
+    logging.info('client connect')
     emit('connection', {'session_id': request.sid})
 
 
@@ -196,6 +208,12 @@ def live():
 
 @app.route('/')
 def hello_world():
+    global thread
+    if thread is None:
+        logging.info("Background thread not running.  Starting it")
+        thread = Thread(target=background_cleanup)
+        thread.daemon = True
+        thread.start()
     return render_template('index.html')
 
 
@@ -286,5 +304,6 @@ def admin():
     return response
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("Hello world!")
     socketio.run(app, host='0.0.0.0')

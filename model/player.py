@@ -1,4 +1,8 @@
 import logging
+import datetime
+
+INACTIVITY_LIMIT = 30 * 60  # 30 minutes in seconds
+
 
 class Player:
     def __init__(self, name, session_id):
@@ -7,7 +11,7 @@ class Player:
         self.score = 0
         self.streak = 0
         self.current_bet = None
-        self.last_seen = None # TODO: deal with this bullshit later
+        self.last_seen = datetime.datetime.now()
         self.session_id = session_id
         self.number_bets = 0
 
@@ -20,7 +24,7 @@ class Player:
 
     def set_bet(self, guess):
         self.current_bet = guess
-        self.last_seen = None # TODO: still dealing with it
+        self.touch()
 
     def check_winner(self, winner):
         self.number_bets += 1
@@ -44,6 +48,13 @@ class Player:
             'session_id': self.session_id,
             'number_bets': self.number_bets
         }
+
+    def touch(self):
+        self.last_seen = datetime.datetime.now()
+
+    def should_be_cleaned_up(self):
+        time_since_last_seen = datetime.datetime.now() - self.last_seen
+        return time_since_last_seen.seconds > INACTIVITY_LIMIT
 
     def as_hexicube_string(self):
         return "player %s %s %s %s %s %s" % (self.session_id, self.score, self.streak, self.current_bet, self.number_bets, self.name)

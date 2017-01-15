@@ -60,9 +60,10 @@ class BettingBoard:
             value.reset()
 
     def remove_garbage(self):
-        # TODO: remove inactive players here for some defintion
-        #       of inactive
-        pass
+        inactive_players = [k for k, v in self.players.iteritems() if self.players[k].should_be_cleaned_up()]
+        for x in inactive_players:
+            logging.info("deleting inactive player %s", self.players[x].name)
+            del self.players[x]
 
     def as_serializable_object(self):
         return {'bets_open': self.bets_open, 'last_winner': self.last_winner, 'players': [self.players[x].as_serializable_object() for x in self.players]}
