@@ -1,5 +1,6 @@
 import logging
 
+
 class BettingBoard:
     def __init__(self):
         self.players = {}
