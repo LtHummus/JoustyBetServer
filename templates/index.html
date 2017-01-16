@@ -108,6 +108,14 @@
                     return false;
                 });
 
+                $('.signup-button').click(function(event) {
+                    console.log('submitting name in new hook');
+                    var name = $('#username_field').val();
+                    console.log('got name ' + name);
+                    socket.emit('signup', {username: name});
+                    console.log('and away...');
+                });
+
                 function postVote(vote) {
                     console.log('posting vote ' + vote);
                     socket.emit('vote', {guess: vote});
@@ -198,7 +206,7 @@
                     <input class="frontend-control" type="text" name="username" id="username_field"/>
                     <span class="username-error" id="signup-error-text"></span>
                 </div>
-                <input type="submit" />
+                <button type="button" class="btn btn-primary signup-button">Sign Up</button>
             </form>
 
             <div id="logout_form">
