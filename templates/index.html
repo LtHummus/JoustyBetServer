@@ -15,6 +15,11 @@
             var bet = undefined;
             var loggedIn = false;
 
+            function hideLoading() {
+                $('#loading_screen').css('display', 'none');
+                $('#signup').css('display', 'inline');
+            }
+
             function doStateInit(bets_open) {
                 $('#signup').css('display', 'none');
                 $('#logout_form').css('display', 'inline');
@@ -47,8 +52,6 @@
                 var socket = io.connect('http://' + document.domain + ':' + location.port + '/jousty');
 
                 socket.on('connection', function(payload) {
-                    console.log('got message');
-                    console.log(payload);
                     //do some client init
                     var session = localStorage.getItem('joust_session');
                     if (session != null) {
@@ -59,14 +62,18 @@
                         })
                     }
 
+                    hideLoading();
+
+
                     localStorage.setItem('joust_session', payload['session_id']);
                 });
 
                 socket.on('resume_success', function(payload) {
+                    hideLoading();
                     console.log(payload);
                     var bets_open = payload['bets_open'];
-                    if (bets_open && payload['player']['current_bet'] != undefined) {
-                        handleBetOk(payload['player']['current_bet'])
+                    if (payload['player']['current_bet'] != undefined) {
+                        handleBetOk(payload['player']['current_bet']);
                         $('#signup').css('display', 'none');
                         $('#logout_form').css('display', 'inline');
                         $('#subtext').text("Betting is open!");
@@ -86,6 +93,10 @@
 
                 socket.on('bet_ok', function(payload) {
                     handleBetOk(payload['guess']);
+                });
+
+                socket.on('resume_failed', function(payload) {
+                    hideLoading();
                 });
 
                 socket.on('open_bet', function(payload) {
@@ -210,7 +221,11 @@
             <h1 id="header">Welcome to JoustyBet!</h1>
             <h2 id="subtext"></h2>
 
-            <form action="#" id="signup">
+            <div id="loading_screen">
+                <h1>Loading...</h1>
+            </div>
+
+            <form action="#" id="signup" style="display: none;">
                 <div id="username-field-div">
                     <label for="username_field" class="control-label">Username:</label>
                     <input class="frontend-control" type="text" name="username" id="username_field"/>
