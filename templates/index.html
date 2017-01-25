@@ -76,7 +76,11 @@
                         handleBetOk(payload['player']['current_bet']);
                         $('#signup').css('display', 'none');
                         $('#logout_form').css('display', 'inline');
-                        $('#subtext').text("Betting is open!");
+                        if (bets_open)
+                            $('#subtext').text("Betting is open!");
+                        else
+                            $('#subtext').text("Betting is closed!");
+
                         loggedIn = true;
                     } else {
                         doStateInit(bets_open);
