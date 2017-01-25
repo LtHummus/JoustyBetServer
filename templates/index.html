@@ -38,6 +38,11 @@
                 $('#subtext').text("Betting is now closed! ");
             }
 
+            function handleBetOk(guess) {
+                $('#betting_buttons').css('display', 'none');
+                $('#header').text("You have bet on: " + guess);
+                bet = guess;
+            }
             $(document).ready(function() {
                 var socket = io.connect('http://' + document.domain + ':' + location.port + '/jousty');
 
@@ -60,7 +65,14 @@
                 socket.on('resume_success', function(payload) {
                     console.log(payload);
                     var bets_open = payload['bets_open'];
-                    doStateInit(bets_open);
+                    if (bets_open && payload['player']['current_bet'] != undefined) {
+                        handleBetOk(payload['player']['current_bet'])
+                        $('#signup').css('display', 'none');
+                        $('#logout_form').css('display', 'inline');
+                        $('#subtext').text("Betting is open!");
+                    } else {
+                        doStateInit(bets_open);
+                    }
                 });
 
                 socket.on('join_ok', function(payload) {
@@ -73,9 +85,7 @@
                 });
 
                 socket.on('bet_ok', function(payload) {
-                    $('#betting_buttons').css('display', 'none');
-                    $('#header').text("You have bet on: " + payload['guess']);
-                    bet = payload['guess'];
+                    handleBetOk(payload['guess']);
                 });
 
                 socket.on('open_bet', function(payload) {
