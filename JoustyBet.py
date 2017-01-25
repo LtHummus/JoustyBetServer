@@ -6,6 +6,7 @@ from flask_sockets import Sockets
 import json
 import logging
 import time
+import sys
 from profanity import profanity
 from threading import Thread
 
@@ -37,7 +38,7 @@ if async_mode is None:
     if async_mode is None:
         async_mode = 'threading'
 
-    logging.info('async_mode is ' + async_mode)
+    print 'async_mode is ' + async_mode
 
 
 # monkey patching is necessary because this application uses a background
@@ -57,6 +58,9 @@ socketio = SocketIO(app, async_mode=async_mode, logger=True, cookie='session-res
 thread = None
 
 SHARED_SECRET = "CHANGEME"
+LOGGER = logging.getLogger("JoustyBet")
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+LOGGER.setLevel(logging.INFO)
 
 game = BettingBoard()
 locked = False
@@ -65,10 +69,10 @@ INACTIVITY_CHECK_TIME = 5 * 60  # 5 minutes in seconds
 
 
 def background_cleanup():
-    logging.info("Background cleanup thread started")
+    LOGGER.info("Background cleanup thread started")
     while True:
         time.sleep(INACTIVITY_CHECK_TIME)
-        logging.info("Checking for inactive players")
+        LOGGER.info("Checking for inactive players")
         game.remove_garbage()
         update_scoreboard()
 
@@ -88,19 +92,19 @@ def handle_unlock():
 
 def handle_game_begin():
     if locked:
-        logging.info("Game is locked.  Not starting shit")
+        LOGGER.info("Game is locked.  Not starting shit")
         return
-    logging.info("Closing bets!")
+    LOGGER.info("Closing bets!")
     game.close_bets()
     socketio.emit('close_bet', {}, namespace='/jousty', broadcast=True)
 
 
 def handle_winner(data):
     if locked:
-        logging.info("Game is locked.  Not starting shit")
+        LOGGER.info("Game is locked.  Not starting shit")
         return
     winner = data['winner']
-    logging.info("Got winner: %s", winner)
+    LOGGER.info("Got winner: %s", winner)
     game.deal_with_winner(winner)
     game.open_bets()
     socketio.emit('open_bet', {'previous_winner': winner}, namespace='/jousty', broadcast=True)
@@ -108,7 +112,7 @@ def handle_winner(data):
 
 
 def decode_event(data):
-    logging.info("Received event.  Raw JSON: %s", data)
+    LOGGER.info("Received event.  Raw JSON: %s", data)
     decoded = json.loads(data.decode('UTF-8'))
     event_type = decoded['type']
 
@@ -126,14 +130,14 @@ def decode_event(data):
 
 @socketio.on('connect', namespace='/jousty')
 def socket_connect():
-    logging.info('client connect')
+    LOGGER.info('client connect')
     emit('connection', {'session_id': request.sid})
 
 
 @socketio.on('attempt_session_resume', namespace='/jousty')
 def attempt_session_resume(payload):
     old_session_id = payload['session_id']
-    logging.info("Attempting to resume session for old id %s", old_session_id)
+    LOGGER.info("Attempting to resume session for old id %s", old_session_id)
     if game.player_session_exists(old_session_id):
         game.update_player_session(old_session_id, request.sid)
         player = game.players[request.sid]
@@ -145,7 +149,7 @@ def attempt_session_resume(payload):
 
 @socketio.on('logout', namespace='/jousty')
 def logout(payload):
-    logging.info('attempting to sign up user with id %s', request.sid)
+    LOGGER.info('attempting to sign up user with id %s', request.sid)
     user_id = request.sid
     del game.players[user_id]
 
@@ -173,7 +177,7 @@ def signup(payload):
 
 @socketio.on('vote', namespace='/jousty')
 def vote(payload):
-    logging.info('got vote for %s from %s', payload['guess'], request.sid)
+    LOGGER.info('got vote for %s from %s', payload['guess'], request.sid)
     success = game.set_bet_on_player(request.sid, payload['guess'])
     if success:
         emit('bet_ok', {'guess': payload['guess']})
@@ -184,7 +188,7 @@ def vote(payload):
 
 @socketio.on('connect', namespace='/board')
 def board_connect():
-    logging.info("Board attempted connection")
+    LOGGER.info("Board attempted connection")
     update_scoreboard()
 
 
@@ -210,7 +214,7 @@ def live():
 def hello_world():
     global thread
     if thread is None:
-        logging.info("Background thread not running.  Starting it")
+        LOGGER.info("Background thread not running.  Starting it")
         thread = Thread(target=background_cleanup)
         thread.daemon = True
         thread.start()
@@ -222,9 +226,9 @@ def kill_player():
     if not authenticated():
         return "Nope"
     raw_data = request.data.decode('UTF-8')
-    logging.info(raw_data)
+    LOGGER.info(raw_data)
     decoded = json.loads(raw_data)
-    logging.info("Attempting to admin kill user %s", decoded)
+    LOGGER.info("Attempting to admin kill user %s", decoded)
     for x in game.players:
         if game.players[x].name == decoded['name']:
             del game.players[x]
@@ -304,6 +308,5 @@ def admin():
     return response
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info("Hello world!")
+    LOGGER.info("Hello world!")
     socketio.run(app, host='0.0.0.0')
